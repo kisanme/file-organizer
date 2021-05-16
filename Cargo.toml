@@ -1,0 +1,15 @@
+[package]
+name = "organizer"
+version = "0.1.0"
+authors = ["Nasik <nasik2ms@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2"
+anyhow = "1"
+infer = {version = "0.3"}
+mime = "0"
+strum = "0.20"
+strum_macros = "0.20"
