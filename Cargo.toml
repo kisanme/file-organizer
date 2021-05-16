@@ -11,5 +11,3 @@ clap = "2"
 anyhow = "1"
 infer = {version = "0.3"}
 mime = "0"
-strum = "0.20"
-strum_macros = "0.20"
