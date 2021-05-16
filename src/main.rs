@@ -1,5 +1,5 @@
 extern crate clap;
-use std::path::PathBuf;
+use std::{io::{ErrorKind}, path::PathBuf};
 use clap::{Arg, App};
 use anyhow::{Result};
 use std::fs::{read_dir, rename, create_dir};
@@ -58,6 +58,20 @@ macro_rules! folders {
   };
 }
 
+macro_rules! moveFolderItemsToSubDirectory {
+  ($containing_folder: ident, $folder_items: ident) => {
+    for item in $folder_items {
+      // println!("From {:?}, TO {:?}", item, $containing_folder.to_owned() + "/" + item.file_name().unwrap().to_str().unwrap());
+      match rename(item, $containing_folder.to_owned() + "/" + item.file_name().unwrap().to_str().unwrap()) {
+        Ok(_x) => {},
+        Err(_y) => {
+          println!("Moving file failed: {:?}", item);
+        },
+      }
+    }
+  };
+}
+
 fn main() -> Result<()> {
   let matches = App::new("File Organizer")
                           .version("1.0")
@@ -72,7 +86,6 @@ fn main() -> Result<()> {
     // Calling .unwrap() is safe here because "PATH" is required (if "INPUT" wasn't
     // required we could have used an 'if let' to conditionally get the value)
     let directory = matches.value_of("PATH").unwrap();
-    println!("Using input file: {}", directory);
 
     folders!(folders);
 
@@ -106,20 +119,24 @@ fn main() -> Result<()> {
             },
           Err(_why) => println!("Cannot parse file!"),
         }
-        // return Ok(());
-      } else {
-        println!("HOLA");
       }
     }
-    println!("{:#?}", folders);
 
     for (folder_name, folder_items) in &folders.into_iteratable() {
-      println!("{:?}", folder_name);
       // Create folder
-      create_dir(std::path::Path::new(directory + folder_name))?;
-      for item in folder_items {
-        // Move item to folder created above
-        println!("{:?}", &item);
+      let conatining_folder: &str = &(directory.to_owned() + "/" + folder_name);
+      match create_dir(std::path::Path::new(conatining_folder)) {
+        Ok(_x) => {
+          moveFolderItemsToSubDirectory!(conatining_folder, folder_items);
+        },
+        Err(x) => {
+          match x.kind() {
+            ErrorKind::AlreadyExists => {
+              moveFolderItemsToSubDirectory!(conatining_folder, folder_items);
+            },
+            _ => {}
+          }
+        }
       }
     }
 
